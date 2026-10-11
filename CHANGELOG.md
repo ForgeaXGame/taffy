@@ -85,6 +85,8 @@
 
 ### Fixed
 
+- Flexbox: size an auto-width row flex container laid out in definite available space as fit-content (its max-content size, limited by the available space and floored by its min-content size), rather than from the sum of its items' flex base sizes.
+
 - Flexbox: treat percentage flex bases in an indefinite main size as content, rather than falling back to the item's preferred main size.
 
 - Block: floor same-BFC child context widths at padding + border so float geometry matches the child's used border-box size.
