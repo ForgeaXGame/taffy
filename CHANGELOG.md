@@ -85,6 +85,8 @@
 
 ### Fixed
 
+- Grid: limit `fr` tracks of an auto-sized grid container laid out in definite available space by that available space (fit-content sizing), rather than sizing them to the items' max-content contributions.
+
 - Flexbox: treat percentage flex bases in an indefinite main size as content, rather than falling back to the item's preferred main size.
 
 - Block: floor same-BFC child context widths at padding + border so float geometry matches the child's used border-box size.
