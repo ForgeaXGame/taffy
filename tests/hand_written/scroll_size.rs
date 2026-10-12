@@ -228,3 +228,38 @@ fn scroll_height_agrees_with_borders_and_padding_combined() {
         assert_eq!(layout.scroll_height(), expected, "{display:?}");
     }
 }
+
+#[test]
+fn block_scroll_extent_includes_the_final_collapsed_margin() {
+    // Chromium CSSOM reference: a 200px child in a 100px border-box scroller.
+    // Padding and the terminal margin contribute independently to scrollHeight.
+    for (padding, margin, expected) in [(0.0, 0.0, 200.0), (12.0, 0.0, 224.0), (0.0, 12.0, 212.0), (12.0, 12.0, 236.0)]
+    {
+        let mut tree = new_test_tree();
+        let child = tree
+            .new_leaf(Style {
+                display: Display::Block,
+                size: Size { width: auto(), height: length(200.0) },
+                margin: Rect { bottom: length(margin), ..zero() },
+                ..Default::default()
+            })
+            .unwrap();
+        let node = tree
+            .new_with_children(
+                Style {
+                    display: Display::Block,
+                    box_sizing: BoxSizing::BorderBox,
+                    size: Size { width: length(300.0), height: length(100.0) },
+                    padding: Rect::length(padding),
+                    overflow: Point { x: Overflow::Hidden, y: Overflow::Hidden },
+                    ..Default::default()
+                },
+                &[child],
+            )
+            .unwrap();
+        tree.compute_layout(node, Size::MAX_CONTENT).unwrap();
+        let layout = tree.layout(node).unwrap();
+        assert_eq!(layout.scrollable_overflow_rect.bottom, expected, "padding={padding}, margin={margin}");
+        assert_eq!(layout.scroll_height(), expected - 100.0, "padding={padding}, margin={margin}");
+    }
+}

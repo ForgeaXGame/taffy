@@ -671,6 +671,12 @@ fn compute_inner(
     let own_bottom_margin_collapses_with_children =
         own_margins_collapse_with_children.end && !height_constrained_by_min_height;
 
+    // The in-flow stack includes its final collapsed margin, which is outside the
+    // child border boxes used below. Keep that end edge in padding-box coordinates.
+    #[cfg(feature = "content_size")]
+    let mut inflow_margin_end =
+        intrinsic_outer_height - resolved_border.vertical_axis_sum() - scrollbar_gutter.vertical_axis_sum();
+
     // Apply `align-content` to in-flow non-floated items if requested. The per-item layouts were
     // held back in `item.final_layout` so that this step can shift `location.y` before tree commit.
     //
@@ -698,6 +704,7 @@ fn compute_inner(
         if any_in_flow {
             #[cfg(feature = "content_size")]
             {
+                inflow_margin_end += group_offset;
                 inflow_overflow_rect = Rect::ZERO;
                 for item in items.iter() {
                     if let Some(layout) = item.final_layout.as_ref() {
@@ -838,6 +845,7 @@ fn compute_inner(
             inflow_overflow_rect.right +=
                 if direction.is_rtl() { resolved_padding.left } else { resolved_padding.right };
             inflow_overflow_rect.bottom += resolved_padding.bottom;
+            inflow_overflow_rect.bottom = inflow_overflow_rect.bottom.max(inflow_margin_end);
         }
         output.scrollable_overflow_rect = inflow_overflow_rect;
     }
